@@ -1,11 +1,19 @@
-<%- include('partials/header') %> <%- include('partials/navigation') %>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('partials/header') %>
+  </head>
+  <body class="fade-in">
+    <%- include('partials/navigation') %>
 
-<div
-  class="tab-content tab-section"
-  id="nav-tabContent"
->
-  <%- include('pages/home') %> <%- include('pages/code') %> <%-
-  include('pages/art') %>
-</div>
+    <div
+      class="tab-content tab-section"
+      id="nav-tabContent"
+    >
+      <%- include('pages/home') %> <%- include('pages/code') %> <%-
+      include('pages/art') %>
+    </div>
 
-<%- include('partials/footer') %>
+    <%- include('partials/footer') %>
+  </body>
+</html>
