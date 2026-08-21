@@ -95,7 +95,7 @@ border-radius:55px 55px 35px 35px;
   min-height:160px;
   max-height:36px;
 
-  width:15%;
+  width:13%;
   min-width:140px;
   max-width:360px;
 
@@ -116,7 +116,7 @@ border-radius:55px 55px 35px 35px;
 
 #title-box .card-body .title-text{
    width:50%;
-   margin:-44px auto 8px auto;
+   margin:-24px auto 8px auto;
     line-height:4;
      color: white;
      font-weight: bold;
@@ -140,6 +140,10 @@ font-size:2.1em;
   text-align:center;
   line-height:1.7;
   margin-top:20px;
+  }
+
+  .card-body .title-text .row{
+  margin:0px;
   }
 
  /*Navigation Bar*/
