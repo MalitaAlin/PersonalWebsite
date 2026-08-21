@@ -419,7 +419,9 @@ border-radius:20px;
   box-shadow:5px 5px 5px 5px  #b8b7b776;
   color: #75bcff;
 }
-
+#codesection .nav ul{
+list-style-type: none;
+}
 /**Art Section *************/
 .art-box{
   background-color: transparent ;
