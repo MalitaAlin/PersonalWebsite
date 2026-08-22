@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "build": "node build.js", 
+    "build": "node build.js",
     "deploy": "npm run build && git add dist && git commit -m 'Deploy to GitHub Pages' && git push"
   },
   "dependencies": {
@@ -14,6 +14,4 @@
   "devDependencies": {
     "ejs": "^6.0.1"
   }
-
-  
 }
