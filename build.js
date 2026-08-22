@@ -1,10 +1,8 @@
-const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
 
-// Set up paths - all relative to root
+// Set up paths
 const viewsDir = path.join(__dirname, 'views');
-const publicDir = path.join(__dirname, 'public');
 const distDir = path.join(__dirname, 'dist');
 
 // Ensure dist folder exists
@@ -12,67 +10,41 @@ if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
 
-// Copy public folder to dist
-function copyFolderSync(from, to) {
-  if (!fs.existsSync(to)) {
-    fs.mkdirSync(to, { recursive: true });
+// Function to read and process a file (remove leading slashes)
+function processFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    console.error(`❌ File not found: ${filePath}`);
+    return '';
   }
-  const files = fs.readdirSync(from);
-  for (const file of files) {
-    const fromPath = path.join(from, file);
-    const toPath = path.join(to, file);
-    if (fs.statSync(fromPath).isDirectory()) {
-      copyFolderSync(fromPath, toPath);
-    } else {
-      fs.copyFileSync(fromPath, toPath);
-    }
-  }
-}
-
-console.log('📁 Copying public folder to dist...');
-if (fs.existsSync(publicDir)) {
-  copyFolderSync(publicDir, path.join(distDir));
-} else {
-  console.log('⚠️  No public folder found. Skipping copy.');
-}
-
-// Function to read and process template files
-function readTemplateFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
   // Remove leading slashes from paths for GitHub Pages compatibility
   content = content.replace(/(href|src)="\//g, '$1="');
   return content;
 }
 
-// Render index.ejs
-console.log('📄 Generating index.html...');
-const templatePath = path.join(viewsDir, 'index.ejs');
+console.log('📄 Building index.html...');
 
 try {
-  // Read and process all partials first
-  const partialsDir = path.join(viewsDir, 'partials');
-  const pagesDir = path.join(viewsDir, 'pages');
+  // Read all partials
+  const header = processFile(path.join(viewsDir, 'partials', 'header.ejs'));
+  const navigation = processFile(path.join(viewsDir, 'partials', 'navigation.ejs'));
+  const footer = processFile(path.join(viewsDir, 'partials', 'footer.ejs'));
   
-  // Read and process each partial
-  const header = readTemplateFile(path.join(partialsDir, 'header.ejs'));
-  const navigation = readTemplateFile(path.join(partialsDir, 'navigation.ejs'));
-  const footer = readTemplateFile(path.join(partialsDir, 'footer.ejs'));
-  
-  // Read and process each page
-  const home = readTemplateFile(path.join(pagesDir, 'home.ejs'));
-  const code = readTemplateFile(path.join(pagesDir, 'code.ejs'));
-  const art = readTemplateFile(path.join(pagesDir, 'art.ejs'));
+  // Read all pages
+  const home = processFile(path.join(viewsDir, 'pages', 'home.ejs'));
+  const code = processFile(path.join(viewsDir, 'pages', 'code.ejs'));
+  const art = processFile(path.join(viewsDir, 'pages', 'art.ejs'));
   
   // Read the main template
-  let template = fs.readFileSync(templatePath, 'utf8');
+  let template = fs.readFileSync(path.join(viewsDir, 'index.ejs'), 'utf8');
   
-  // Replace includes with processed content
-  template = template.replace(/<%- include\('partials\/header'\) %>/g, header);
-  template = template.replace(/<%- include\('partials\/navigation'\) %>/g, navigation);
-  template = template.replace(/<%- include\('partials\/footer'\) %>/g, footer);
-  template = template.replace(/<%- include\('pages\/home'\) %>/g, home);
-  template = template.replace(/<%- include\('pages\/code'\) %>/g, code);
-  template = template.replace(/<%- include\('pages\/art'\) %>/g, art);
+  // Replace includes with actual content
+  template = template.replace(/<%- include\s*\(\s*['"](?:partials\/)?header['"]\s*\)\s*%>/g, header);
+  template = template.replace(/<%- include\s*\(\s*['"](?:partials\/)?navigation['"]\s*\)\s*%>/g, navigation);
+  template = template.replace(/<%- include\s*\(\s*['"](?:partials\/)?footer['"]\s*\)\s*%>/g, footer);
+  template = template.replace(/<%- include\s*\(\s*['"](?:pages\/)?home['"]\s*\)\s*%>/g, home);
+  template = template.replace(/<%- include\s*\(\s*['"](?:pages\/)?code['"]\s*\)\s*%>/g, code);
+  template = template.replace(/<%- include\s*\(\s*['"](?:pages\/)?art['"]\s*\)\s*%>/g, art);
   
   // Remove any remaining EJS tags (just in case)
   template = template.replace(/<%.*?%>/g, '');
@@ -80,18 +52,41 @@ try {
   // Write to dist
   fs.writeFileSync(path.join(distDir, 'index.html'), template);
   
-  // Also copy index.html to root for GitHub Pages
+  // Also copy to root for GitHub Pages
   fs.copyFileSync(path.join(distDir, 'index.html'), path.join(__dirname, 'index.html'));
   
-  console.log('✅ Build complete! Files are in the "dist" folder.');
-  console.log('📁 Also copied index.html to root for GitHub Pages.');
-  console.log('📁 You can now deploy the entire project to GitHub Pages.');
-  console.log('\n📋 Files and folders to deploy:');
-  console.log('   - index.html (in root)');
+  // Copy other static files if they exist
+  const publicDir = path.join(__dirname, 'public');
+  if (fs.existsSync(publicDir)) {
+    console.log('📁 Copying public folder...');
+    function copyFolderSync(from, to) {
+      if (!fs.existsSync(to)) {
+        fs.mkdirSync(to, { recursive: true });
+      }
+      const files = fs.readdirSync(from);
+      for (const file of files) {
+        const fromPath = path.join(from, file);
+        const toPath = path.join(to, file);
+        if (fs.statSync(fromPath).isDirectory()) {
+          copyFolderSync(fromPath, toPath);
+        } else {
+          fs.copyFileSync(fromPath, toPath);
+        }
+      }
+    }
+    copyFolderSync(publicDir, distDir);
+    // Also copy to root for GitHub Pages
+    copyFolderSync(publicDir, __dirname);
+  }
+  
+  console.log('✅ Build complete!');
+  console.log('📁 Files generated:');
+  console.log('   - dist/index.html');
+  console.log('   - index.html (root)');
   console.log('   - images/ (folder)');
   console.log('   - css/ (folder)');
   console.log('   - js/ (folder)');
-  console.log('   - .nojekyll (file)');
+  console.log('📁 You can now deploy to GitHub Pages.');
   
 } catch (error) {
   console.error('❌ Error building:', error.message);
